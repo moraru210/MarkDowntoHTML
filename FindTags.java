@@ -10,24 +10,33 @@ public class FindTags {
 
   public void findTag() {
     if (type.equals(TagType.HEADER)) {
-      int i = countHeader();
-      str = "<h" + i + ">" + str.substring(i) + "</h" + i + ">";
+      handleHeaders();
     } else if (type.equals(TagType.LIST)) {
       handleLists();
     } else {
+      //handles paragraphs for now, since no empty strings are fed.
       str = "<p>" + str + "</p>";
     }
   }
 
   private int countHeader() {
+    //counts the number of '#' until the current character is a space/not '#'.
+    //since beginning character(s) has to be '#'.
     int l = 0;
-    for (int i = 0; i < str.length(); i++) {
-      if (str.charAt(i) != '#') {
-        break;
-      }
+    while (str.charAt(l) == '#') {
       l++;
     }
+    //if there's no space between '#' and next character
+    //then it's not a header anymore.
+    if (str.charAt(l) != ' '){
+      l = 0;
+    }
     return l;
+  }
+
+  private void handleHeaders() {
+    int i = countHeader();
+    str = "<h" + i + ">" + str.substring(i + 1) + "</h" + i + ">";
   }
 
   private void handleLists() {
@@ -40,7 +49,7 @@ public class FindTags {
       if (index == -1) {
         tempStr
             .append("<li>")
-            .append(str.substring(tempIndex + 3, str.length() - 1))
+            .append(str.substring(tempIndex + 3))
             .append("</li>\n");
         break;
       }
