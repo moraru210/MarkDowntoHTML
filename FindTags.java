@@ -48,6 +48,8 @@ public class FindTags {
           emphasisQ.add("<em>" + words[i].substring(1));
           pos = i;
         }
+      } else if (!emphasisQ.isEmpty() && words[i].charAt(words[i].length() - 1) != '*'){
+        emphasisQ.add(words[i]);
       }
 
       if (!emphasisQ.isEmpty() && (words[i].charAt(words[i].length() - 1) == '*') && i > pos) {
@@ -78,7 +80,9 @@ public class FindTags {
           && words[i].charAt(words[i].length() - 2) != '*') {
         words[i] = "<em>" + words[i].substring(1, words[i].length() - 1) + "</em>";
       }
+
     }
+
     return String.join(" ", words);
   }
 
