@@ -31,14 +31,19 @@ public class FindTags {
   }
 
   private String lookThroughLine(String input) {
-    String[] words = input.split("\\[|]|\\(|\\)|\\s");
+    String[] words = input.split("\\[|]|\\s");
     Queue<String> emphasisQ = new PriorityQueue<>();
     Font type = Font.NORMAL;
     int pos = 0;
+    int linkMarker = 0;
 
     for (int i = 0; i < words.length; i++) {
+      if (words[i].length() == 0) {
+        linkMarker = i;
+        continue;
+      }
 
-      if (words[i].charAt(0) == '*' && emphasisQ.isEmpty()) {
+      if (words[i].length() > 0 && words[i].charAt(0) == '*' && emphasisQ.isEmpty()) {
         if (words[i].charAt(1) == '*') {
           type = Font.BOLD;
           emphasisQ.add("<strong>" + words[i].substring(2));
@@ -48,7 +53,7 @@ public class FindTags {
           emphasisQ.add("<em>" + words[i].substring(1));
           pos = i;
         }
-      } else if (!emphasisQ.isEmpty() && words[i].charAt(words[i].length() - 1) != '*'){
+      } else if (!emphasisQ.isEmpty() && words[i].charAt(words[i].length() - 1) != '*') {
         emphasisQ.add(words[i]);
       }
 
@@ -81,9 +86,27 @@ public class FindTags {
         words[i] = "<em>" + words[i].substring(1, words[i].length() - 1) + "</em>";
       }
 
+      if (words[i].charAt(0) == '(' && i > 0) {
+        StringBuilder blueWords = new StringBuilder();
+        for (int j = linkMarker; j < i; j++) {
+          blueWords.append(words[j]);
+          words[j] = "";
+        }
+        words[i] =
+            "<a href=\""
+                + words[i].substring(1, words[i].length() - 1)
+                + "\">"
+                + blueWords.toString()
+                + "</a>";
+      }
     }
 
-    return String.join(" ", words);
+    StringBuilder output = new StringBuilder();
+    for (int k = 0; k < words.length; k++) {
+        if (k == words.length -1) { output.append(words[k]); break;}
+        if (!words[k].equals("")) { output.append(words[k]); output.append(" ");}
+    }
+    return output.toString();
   }
 
   private int countHeader() {
