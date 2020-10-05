@@ -90,11 +90,13 @@ public class FindTags {
           && words[i].charAt(words[i].length() - 2) == '*') {
         //word just added to the queue has the end asterisks.
         words[i] = "<strong>" + words[i].substring(2, words[i].length() - 2) + "</strong>";
+        emphasisQ.clear();
       } else if (pos == i
           && !emphasisQ.isEmpty()
           && words[i].charAt(words[i].length() - 1) == '*'
           && words[i].charAt(words[i].length() - 2) != '*') {
         words[i] = "<em>" + words[i].substring(1, words[i].length() - 1) + "</em>";
+        emphasisQ.clear();
       }
 
       //due to how chunk is split, when we hit an empty string
