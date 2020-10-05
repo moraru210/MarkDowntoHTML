@@ -1,6 +1,7 @@
 public enum TagType {
     HEADER,
-    LIST,
+    ORDERED_LIST,
+    UNORDERED_LIST,
     PARAGRAPH,
     EMPTY
 }

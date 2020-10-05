@@ -1,6 +1,5 @@
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Stack;
 
 public class FindTags {
 
@@ -20,9 +19,17 @@ public class FindTags {
 
   public void findTag() {
     if (type.equals(TagType.HEADER)) {
-      handleHeaders();
-    } else if (type.equals(TagType.LIST)) {
-      handleLists();
+        handleHeaders();
+    } else if (type.equals(TagType.ORDERED_LIST)) {
+        StringBuilder tempStr = new StringBuilder("<ol>\n");
+        handleLists(tempStr);
+        tempStr.append("</ol>");
+        str = tempStr.toString();
+    } else if (type.equals(TagType.UNORDERED_LIST)) {
+        StringBuilder tempStr = new StringBuilder("<ul>\n");
+        handleLists(tempStr);
+        tempStr.append("</ul>");
+        str = tempStr.toString();
     } else {
       // handles paragraphs for now, since no empty strings are fed.
       String output = lookThroughLine(str);
@@ -103,8 +110,14 @@ public class FindTags {
 
     StringBuilder output = new StringBuilder();
     for (int k = 0; k < words.length; k++) {
-        if (k == words.length -1) { output.append(words[k]); break;}
-        if (!words[k].equals("")) { output.append(words[k]); output.append(" ");}
+      if (k == words.length - 1) {
+        output.append(words[k]);
+        break;
+      }
+      if (!words[k].equals("")) {
+        output.append(words[k]);
+        output.append(" ");
+      }
     }
     return output.toString();
   }
@@ -130,25 +143,16 @@ public class FindTags {
     str = "<h" + i + ">" + output + "</h" + i + ">";
   }
 
-  private void handleLists() {
-    StringBuilder tempStr = new StringBuilder("<ol>\n");
-    int num = 2;
-    int index = 0;
-    while (true) {
-      int tempIndex = index;
-      index = str.indexOf(num + ". ");
-      if (index == -1) {
-        String output = lookThroughLine(str.substring(tempIndex + 3));
-        tempStr.append("<li>").append(output).append("</li>\n");
-        break;
+  private void handleLists(StringBuilder tempStr) {
+      String[] list_items = type == TagType.UNORDERED_LIST ? str.split("-") : str.split("\\d+");
+      int subString = type == TagType.UNORDERED_LIST ? 1 : 2;
+      String preProcessed;
+      for (String item : list_items) {
+          if (!item.equals("")) {
+              preProcessed = lookThroughLine(item.substring(subString));
+              tempStr.append("<li>").append(preProcessed).append("</li>\n");
+          }
       }
-      String output = lookThroughLine(str.substring(tempIndex + 3, index));
-      tempStr.append("<li>").append(output).append("</li>\n");
-      num++;
-    }
-
-    tempStr.append("</ol>");
-    str = tempStr.toString();
   }
 
   public String getStr() {

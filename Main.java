@@ -11,8 +11,8 @@ import java.util.Scanner;
 
 public class Main {
 
-  private final static String START_HTML = "<!DOCTYPE html>\n<html>";
-  private final static String END_HTML = "</body>\n</html>";
+  private static final String START_HTML = "<!DOCTYPE html>\n<html>";
+  private static final String END_HTML = "</body>\n</html>";
 
   public static void main(String[] args) throws IOException {
 
@@ -50,13 +50,20 @@ public class Main {
         // checks if string is not empty, and has the starting elements to a list.
         // checks for both ordered and unordered.
         if (str.length() > 0
-            && ((str.charAt(0) == '1' && str.charAt(1) == '.') || str.charAt(0) == '-')) {
+            && str.charAt(0) == '1' && str.charAt(1) == '.') {
 
           collectChunk(str, sc);
           // create instance of 'FindTags'
           // 'FindTags' is told that is of type LIST
           // and has to edit the str so that it has the correct HTML tags.
-          line = new FindTags(str.toString(), TagType.LIST);
+          line = new FindTags(str.toString(), TagType.ORDERED_LIST);
+          line.findTag();
+
+        } else if ( str.length() > 0 &&
+                (str.charAt(0) == '-' || str.charAt(0) == '*' || str.charAt(0) == '+')) {
+
+          collectChunk(str, sc);
+          line = new FindTags(str.toString(), TagType.UNORDERED_LIST);
           line.findTag();
 
         } else if (str.length() > 0 && str.charAt(0) == '#') {
@@ -94,7 +101,6 @@ public class Main {
           line = new FindTags("", TagType.EMPTY);
         }
 
-
         // only print the the 'line'(s) that
         // do not have an empty str attribute.
         if (!line.getStr().equals("")) {
@@ -110,7 +116,7 @@ public class Main {
     }
 
     bw.write(END_HTML);
-    //bw.newLine();
+    // bw.newLine();
     bw.close();
   }
 
