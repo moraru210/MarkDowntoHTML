@@ -8,7 +8,7 @@ MarkDown translation. During the summer I realised that I wanted to create my ow
 of using a library, and hence why I did it in Java.
 
 So far, my program is able to handle:
-- Italics and bold text. (note: the asterisks have to be at the beginning of a word and at the end respectively)
+- *Italics* and **bold** text
 - Headers
 - Ordered lists
 - Unordered lists

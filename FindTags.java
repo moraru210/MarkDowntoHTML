@@ -1,5 +1,4 @@
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 public class FindTags {
 
@@ -40,87 +39,82 @@ public class FindTags {
   }
 
   private String lookThroughLine(String input) {
-    String[] words = input.split("\\[|]|\\s");
-    Queue<String> emphasisQ = new PriorityQueue<>();
-    Font type = Font.NORMAL;
-    int pos = 0;
-    int linkMarker = 0;
+    //format the line to find the bold/italic text, and then find the links.
+    return findLinks(formatText(input));
+  }
+
+  private String formatText(String input) {
+    String output = input;
+    boolean modified = false;
+
+    //repeat process until no more pair of asterisks are found,
+    //hence it cannot be formatted further.
+    do {
+      int length = output.length();
+      int asterisks = 0; // 1 for italics, 2 or bold
+      int start = 0;
+      int end = 0;
+      //FIFO
+      Queue<Character> queue = new LinkedList<>();
+      modified = false;
+
+      for (int i = 0; i < length; i++) {
+
+        //found the start of the asterisks
+        if (asterisks == 0 && output.charAt(i) == '*') {
+          if ((i + 2) < length && output.charAt(i + 1) == '*') {
+            asterisks = 2;
+            i = i + 2;
+            start = i;
+          } else if ((i + 1 < length)){
+            asterisks = 1;
+            i = i + 1;
+            start = i;
+          }
+        }
+
+        //found the ending/matching asterisks
+        if (!queue.isEmpty() && (asterisks == 1 || asterisks == 2) && output.charAt(i) == '*') {
+          end = asterisks == 1 ? i + 1 : i + 2;
+          int stackSize = queue.size();
+          char[] charArr = new char[stackSize];
+          for (int j = 0; j < (stackSize); j++) {
+            charArr[j] = queue.poll();
+          }
+          String str = String.valueOf(charArr);
+          FontStyle font = new FontStyle(str, asterisks, start, end);
+          font.addFonts();
+          assert (queue.isEmpty());
+          output =
+              output.substring(0, font.getStart() - font.getAsterisks())
+                  + font.getStr()
+                  + output.substring(font.getEnd(), length);
+          modified = true;
+          break;
+        }
+
+        //add to the queue.
+        if (output.charAt(i) != '*' && (asterisks == 1 || asterisks == 2)) {
+          queue.add(output.charAt(i));
+        }
+      }
+    } while (modified);
+
+    return output;
+  }
+
+  private String findLinks(String input) {
+    //split the text to be able to find the links within the line.
+    String[] words = input.split("[\\[\\]]");
 
     for (int i = 0; i < words.length; i++) {
-
-      //if either italic or bold, and hasn't been used before then create a new Queue and add.
-      if (words[i].length() > 0 && words[i].charAt(0) == '*' && emphasisQ.isEmpty()) {
-        if (words[i].charAt(1) == '*') {
-          type = Font.BOLD;
-          emphasisQ.add("<strong>" + words[i].substring(2));
-          pos = i;
-        } else {
-          type = Font.ITALICS;
-          emphasisQ.add("<em>" + words[i].substring(1));
-          pos = i;
-        }
-      } else if (!emphasisQ.isEmpty() && words[i].charAt(words[i].length() - 1) != '*') {
-        //if stack is not empty, then it means that this current word could possibly be in the middle.
-        //so add to stack.
-        emphasisQ.add(words[i]);
-      }
-
-      if (!emphasisQ.isEmpty() && (words[i].charAt(words[i].length() - 1) == '*') && i > pos) {
-        //found end asterisk(s) and there are words in the middle, so need to go through queue
-        //and add the tags to the front and end of queue.
-        if (words[i].charAt(words[i].length() - 2) == '*' && type == Font.BOLD) {
-          emphasisQ.add(words[i].substring(0, words[i].length() - 2) + "</strong>");
-          for (String s : emphasisQ) {
-            words[pos] = s;
-            pos++;
-          }
-          emphasisQ.clear();
-        } else if (type == Font.ITALICS) {
-          emphasisQ.add(words[i].substring(0, words[i].length() - 1) + "</em>");
-          for (String s : emphasisQ) {
-            words[pos] = s;
-            pos++;
-          }
-          emphasisQ.clear();
-        } else {
-          emphasisQ.add(words[i]);
-        }
-      } else if (pos == i
-          && !emphasisQ.isEmpty()
-          && words[i].charAt(words[i].length() - 2) == '*') {
-        //word just added to the queue has the end asterisks.
-        words[i] = "<strong>" + words[i].substring(2, words[i].length() - 2) + "</strong>";
-        emphasisQ.clear();
-      } else if (pos == i
-          && !emphasisQ.isEmpty()
-          && words[i].charAt(words[i].length() - 1) == '*'
-          && words[i].charAt(words[i].length() - 2) != '*') {
-        words[i] = "<em>" + words[i].substring(1, words[i].length() - 1) + "</em>";
-        emphasisQ.clear();
-      }
-
-      //due to how chunk is split, when we hit an empty string
-      //it indicates that there's an upcoming link.
-      if (words[i].length() == 0) {
-        //linkMarker = to where the empty string is, and then we take the words until '('.
-        linkMarker = i;
-        continue;
-      }
-
-      // check if there is a link in the array words.
-      if (words[i].charAt(0) == '(' && i > 0) {
-        // sets the first array to empty.
-        StringBuilder blueWords = new StringBuilder();
-        for (int j = linkMarker; j < i; j++) {
-          blueWords.append(words[j]);
-          words[j] = "";
-        }
-        words[i] =
-            "<a href=\""
+      if (!words[i].equals("") && words[i].charAt(0) == '(' && i > 0) {
+        words[i] =  "<a href=\""
                 + words[i].substring(1, words[i].length() - 1)
                 + "\">"
-                + blueWords.toString()
+                + words[i - 1]
                 + "</a>";
+        words[i - 1] = "";
       }
     }
 
